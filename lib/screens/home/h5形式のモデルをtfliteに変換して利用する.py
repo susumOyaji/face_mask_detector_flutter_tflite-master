@@ -28,6 +28,9 @@ train_images = train_images[:1000].reshape(-1, 28 * 28) / 255.0
 test_images = test_images[:1000].reshape(-1, 28 * 28) / 255.0
 
 
+
+
+
 '''モデルの定義・学習'''
 #まずは、モデル定義の関数を作成します。
 
@@ -46,6 +49,41 @@ def create_model():
   return model
 #上記で作成した関数を利用して、モデルを定義。
 #そのモデルにMNISTのサンプルデータを食わせます。
+
+
+def build_model():
+  model = tf.keras.Sequential([
+    keras.layers.Dense(64, activation='relu', input_shape=[len(train_dataset.keys())]),
+    keras.layers.Dense(64, activation='relu'),
+    keras.layers.Dense(1)
+  ])
+
+  optimizer = tf.keras.optimizers.RMSprop(0.001)
+
+  model.compile(loss='mse',
+                optimizer=optimizer,
+                metrics=['mae', 'mse'])
+  return model
+
+
+
+
+def create_model():
+  model = tf.keras.models.Sequential()
+    model_2.add(LSTM(10,
+            	dropout=0.2,
+            	recurrent_dropout=0.2,
+            	input_shape=(20,1)))
+model_2.add(Dense(5, activation='relu'))
+model_2.add(Dropout(0.5))
+model_2.add(Dense(1, activation='linear'))
+model_2.summary()
+model_2.compile(optimizer='adam',
+           	loss='mse',
+           	metrics=['mae'])
+
+
+
 
 
 '''新しいモデルのインスタンスを作成して訓練'''
