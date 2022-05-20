@@ -47,30 +47,32 @@ def create_model():
 #上記で作成した関数を利用して、モデルを定義。
 #そのモデルにMNISTのサンプルデータを食わせます。
 
-# 基本的なモデルのインスタンスを作成
-model = create_model()
 
+'''新しいモデルのインスタンスを作成して訓練'''
+#新しいモデルのインスタンスを作成
+model = create_model()
 # モデルの構造を表示
 model.summary()
+#訓練
+model.fit(train_images, train_labels, epochs=5)
 
 
 
 '''モデルの保存'''
-#モデルの保存形式には、次の2種類があります。
+#事前にsaved_modelのディレクトリを作成しておいてください。
+# モデル全体を SavedModel として保存
+#!mkdir -p saved_model
 
+'''モデルの保存形式には、次の2種類があります。'''
 #SavedModel フォーマット
 #HDF5ファイル
 
 '''SavedModel フォーマット'''
-# 新しいモデルのインスタンスを作成して訓練
-model = create_model()
-model.fit(train_images, train_labels, epochs=5)
-#事前にsaved_modelのディレクトリを作成しておいてください。
-# モデル全体を SavedModel として保存
-#!mkdir -p saved_model
+#model.save('saved_model/my_model')
+#上記で作成すると、saved_modelディレクトリの下にmy_modelディレクトリが作成されます。
 model.save('saved_model/my_model')
 
-#上記で作成すると、saved_modelディレクトリの下にmy_modelディレクトリが作成されます。
+
 
 
 '''SavedModel を読み込んで新しい Keras モデルを作成します。'''
@@ -97,17 +99,18 @@ print(new_model.predict(test_images).shape)
 
 '''HDF5ファイル'''
 # 新しいモデルのインスタンスを作成して訓練
-model = create_model()
-model.fit(train_images, train_labels, epochs=5)
+#model = create_model()
+#model.fit(train_images, train_labels, epochs=5)
 
 # HDF5 ファイルにモデル全体を保存
 # 拡張子 '.h5' はモデルが HDF5 で保存されているということを暗示する
-model.save('my_model.h5')
+#model.save('assets/stockcard.h5')
+model.save('saved_model/my_model.h5')
 
 
 '''保存したファイルを使ってモデルを再作成します。'''
 # 同じモデルを読み込んで、重みやオプティマイザーを含むモデル全体を再作成
-new_model = tf.keras.models.load_model('my_model.h5')
+new_model = tf.keras.models.load_model('saved_model/my_model.h5')
 
 # モデルのアーキテクチャを表示
 new_model.summary()
@@ -115,6 +118,25 @@ new_model.summary()
 #正解率を検査します。
 loss, acc = new_model.evaluate(test_images,  test_labels, verbose=2)
 print("Restored model, accuracy: {:5.2f}%".format(100*acc))
+
+
+
+
+'''h5形式のモデルをtfliteに変換して利用する
+keras model to tflite with python
+pythonで行う。tfliteへの変換スクリプトは以下'''
+
+import tensorflow as tf
+
+# load model
+#model = tf.keras.models.load_model('./models/model.hdf5')
+model = tf.keras.models.load_model('saved_model/my_model.h5')
+# convert
+converter = tf.lite.TFLiteConverter.from_keras_model(model)
+tflite_model = converter.convert()
+
+# save
+open("saved_model/model.tflite", "wb").write(tflite_model)
 
 
 
