@@ -83,7 +83,59 @@ model_2.compile(optimizer='adam',
            	metrics=['mae'])
 
 
+# LSTM構築とコンパイル関数
 
+
+def lstm_comp(df):
+    # 入力層/中間層/出力層のネットワークを構築
+    model = Sequential()
+    model.add(LSTM(256, activation='relu', batch_input_shape=(
+        None, df.shape[1], df.shape[2])))
+    model.add(Dropout(0.2))
+    model.add(Dense(256, activation='relu'))
+    model.add(Dropout(0.2))
+    model.add(Dense(1, activation='sigmoid'))
+
+    # ネットワークのコンパイル
+    model.compile(loss='binary_crossentropy',
+                  optimizer='adam', metrics=['accuracy'])
+
+    return model
+
+
+
+''''''
+import tensorflow as tf
+from tensorflow.keras.layers import Input, LSTM, Dense, BatchNormalization, Bidirectional
+from tensorflow.keras.models import Model
+from tensorflow.keras.optimizers import SGD, Adam
+
+
+# LSTMモデルを作成する関数
+def create_LSTM_model():
+    input = Input(shape=(np.array(X_train).shape[1], np.array(X_train).shape[2]))
+    x = LSTM(64, return_sequences=True)(input)
+    x = BatchNormalization()(x)
+    x = LSTM(64)(x)
+    output = Dense(1, activation='relu')(x)
+    model = Model(input, output)
+    return model
+
+
+
+
+# Bidirectional-LSTMモデルを作成する関数
+def create_BiLSTM_model():
+    input = Input(shape=(np.array(X_train).shape[1], np.array(X_train).shape[2]))
+    x = Bidirectional(LSTM(64, return_sequences=True))(input)
+    x = BatchNormalization()(x)
+    x = Bidirectional(LSTM(64))(x)
+    output = Dense(1, activation='relu')(x)
+    model = Model(input, output)
+    return model
+model = create_LSTM_model()
+model.summary()
+model.compile(optimizer=Adam(learning_rate=0.0001), loss='mean_squared_error')
 
 
 '''新しいモデルのインスタンスを作成して訓練'''
