@@ -232,7 +232,51 @@ open("saved_model/model.tflite", "wb").write(tflite_model)
 
 
 '''
+ _loadImage({required bool isCamera}) async {
+    try {
+      final XFile? image = await _picker.pickImage(
+        source: isCamera ? ImageSource.camera : ImageSource.gallery,
+      );
+      if (image == null) {
+        return null;
+      }
+      _image = File(image.path);
+      _detectImage(_image!); //****
+    } catch (e) {
+      checkPermissions(context);
+    }
+  }
 
+ _detectImage(File image) async {
+    var recognitions = await Tflite.runModelOnImage(
+      path: image.path,
+      numResults: 2,
+      threshold: 0.6,
+      imageMean: 127.5,
+      imageStd: 127.5,
+    );
+    
+    setState(() {
+      _loading = false;
+      _recognitions = recognitions!;
+      print(_recognitions[0]);
+    });
+  }
+
+  _reset() {
+    setState(() {
+      _loading = true;
+      _image = null;
+    });
+  }
+
+  loadModel() async {
+    Tflite.close();
+    await Tflite.loadModel(
+      model: "assets/model/model.tflite",
+      labels: "assets/model/labels.txt",
+    );
+  }
 
 '''
 
