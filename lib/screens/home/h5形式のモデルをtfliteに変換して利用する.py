@@ -65,6 +65,21 @@ def build_model():
                 metrics=['mae', 'mse'])
   return model
 
+def build_LSTMmodel():
+  model = tf.keras.models.Sequential([
+    tf.keras.layers.Input(shape=(28, 28), name='input'),
+    tf.keras.layers.LSTM(20, time_major=False, return_sequences=True),
+    tf.keras.layers.Flatten(),
+    tf.keras.layers.Dense(10, activation=tf.nn.softmax, name='output')
+  ])
+  model.compile(optimizer='adam',
+              loss='sparse_categorical_crossentropy',
+              metrics=['accuracy'])
+  return model
+
+#model.summary()
+
+
 
 
 
@@ -255,7 +270,7 @@ open("saved_model/model.tflite", "wb").write(tflite_model)
       imageMean: 127.5,
       imageStd: 127.5,
     );
-    
+
     setState(() {
       _loading = false;
       _recognitions = recognitions!;
@@ -277,6 +292,33 @@ open("saved_model/model.tflite", "wb").write(tflite_model)
       labels: "assets/model/labels.txt",
     );
   }
+
+
+  model = tf.keras.models.Sequential([
+    tf.keras.layers.Input(shape=(28, 28), name='input'),
+    tf.keras.layers.LSTM(20, time_major=False, return_sequences=True),
+    tf.keras.layers.Flatten(),
+    tf.keras.layers.Dense(10, activation=tf.nn.softmax, name='output')
+])
+model.compile(optimizer='adam',
+              loss='sparse_categorical_crossentropy',
+              metrics=['accuracy'])
+model.summary()
+
+run_model = tf.function(lambda x: model(x))
+# This is important, let's fix the input size.
+BATCH_SIZE = 1
+STEPS = 28
+INPUT_SIZE = 28
+concrete_func = run_model.get_concrete_function(
+    tf.TensorSpec([BATCH_SIZE, STEPS, INPUT_SIZE], model.inputs[0].dtype))
+
+# model directory.
+MODEL_DIR = "keras_lstm"
+model.save(MODEL_DIR, save_format="tf", signatures=concrete_func)
+
+converter = tf.lite.TFLiteConverter.from_saved_model(MODEL_DIR)
+tflite_model = converter.convert()
 
 '''
 
